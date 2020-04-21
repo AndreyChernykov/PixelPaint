@@ -1,0 +1,407 @@
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.FileSystemView;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JSlider;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import java.awt.Panel;
+import java.awt.FlowLayout;
+import javax.swing.JRadioButton;
+import javax.imageio.ImageIO;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+
+public class PixelPanel extends JPanel{
+	
+	private static final long serialVersionUID = 1L;
+	ArrayList<Pixel>pixelList;//лист хранящий пиксели
+	int size = 50;//размер пикселя
+	int red = 100;
+	int green = 100;
+	int blue = 100;
+	int alfa = 255;//альфа канал
+	boolean setka = false;//сетка
+	boolean erase = false;//стёрка
+	Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();//узнаём разрешение экрана
+	int horizontalSize = scrSize.width;//узнаём ширину экрана
+	JSlider sliderBrush;
+	JLabel lblBrushSize;
+	
+	public PixelPanel() {
+		
+		pixelList = new ArrayList<Pixel>();
+		setBackground(Color.WHITE);
+		setLayout(null);
+
+		class AcLis implements ActionListener{//обработка Меню меню
+			@Override
+			public void actionPerformed(ActionEvent e){
+				switch(e.getActionCommand()) {
+				case "Сохранить":
+					JFileChooser fch = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());//создаём окно выбора директории куда сохранять
+					fch.setFileFilter(new FileNameExtensionFilter("*.png", "*.*"));
+					int returnValue = fch.showSaveDialog(null);
+	
+					if(returnValue == JFileChooser.APPROVE_OPTION) {
+						String fileName = fch.getSelectedFile().getName();
+						FileWork fileWork = new FileWork();
+						fileWork.fileWrite(fch.getCurrentDirectory() + "\\" + fileName);						
+					}
+					break;
+				case "Выход":
+					System.exit(0);
+					break;
+				case "Очистить":
+					pixelList.clear();
+					repaint();
+					break;
+				case "О программе":
+					JFrame frame = new JFrame();
+					JOptionPane.showMessageDialog(frame, "Пиксельная рисовалка \n2020г.");
+					break;
+				case "Белый":
+					setBackground(Color.WHITE);
+					break;
+				case "Чёрный":
+					setBackground(Color.BLACK);
+					break;
+				}			
+			}
+		}
+		
+		ActionListener actionListener = new AcLis();
+			
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.setToolTipText("Menu");
+		menuBar.setBounds(0, 0, 50, 25);
+		add(menuBar);
+		
+		JMenu menuMenu = new JMenu("Меню");
+		menuBar.add(menuMenu);
+		
+		JMenuItem menuSave = new JMenuItem("Сохранить");
+		menuMenu.add(menuSave);
+		menuSave.addActionListener(actionListener);
+
+		JMenuItem menuClear = new JMenuItem("Очистить");
+		menuMenu.add(menuClear);
+		menuClear.addActionListener(actionListener);
+		
+		JMenuItem menuAbout = new JMenuItem("О программе");
+		menuMenu.add(menuAbout);
+		menuAbout.addActionListener(actionListener);
+
+		JMenuItem menuExit = new JMenuItem("Выход");
+		menuMenu.add(menuExit);		
+		menuExit.addActionListener(actionListener);
+		
+		JMenuBar brushBar = new JMenuBar();
+		brushBar.setToolTipText("Кисть");
+		brushBar.setBounds(50, 0, 50, 25);
+		add(brushBar);
+		
+		JMenu brushMenu = new JMenu("Кисть");
+		brushBar.add(brushMenu);
+		
+		sliderBrush = new JSlider();
+		sliderBrush.setMajorTickSpacing(10);
+		sliderBrush.setPaintLabels(true);
+		sliderBrush.setPaintTicks(true);
+		brushMenu.add(sliderBrush);
+		sliderBrush.addChangeListener(new ChangeListener() {//настройка размера кисти
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				size = sliderBrush.getValue();
+				if(size < 1) {
+					size = 1;
+				}
+				lblBrushSize.setText("Размер кисти  " + size);
+			}		
+		});
+		
+		JMenuBar coloreBar = new JMenuBar();
+		coloreBar.setBounds(100, 0, 50, 25);
+		add(coloreBar);
+		
+		JMenu coloreMenu = new JMenu("Цвет");
+		coloreBar.add(coloreMenu);
+		
+		Panel panelColor = new Panel();
+		FlowLayout fl_panelColor = (FlowLayout) panelColor.getLayout();
+		fl_panelColor.setVgap(50);
+		fl_panelColor.setHgap(30);
+		panelColor.setBackground(Color.WHITE);
+
+		panelColor.setBackground(new Color(red, green, blue, alfa));
+		coloreMenu.add(panelColor);
+		
+		JSlider sliderRed = new JSlider();
+		sliderRed.setPaintLabels(true);
+		sliderRed.setMinorTickSpacing(1);
+		sliderRed.setMajorTickSpacing(255);
+		sliderRed.setSnapToTicks(true);
+		sliderRed.setValue(red);
+		sliderRed.setMaximum(255);
+		sliderRed.setToolTipText("красный");
+		coloreMenu.add(sliderRed);
+		sliderRed.addChangeListener(new ChangeListener() {//красный цвет
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				red = sliderRed.getValue();
+				panelColor.setBackground(new Color(red, green, blue));
+			}
+		});
+		
+		JSlider sliderGreen = new JSlider();
+		sliderGreen.setMajorTickSpacing(255);
+		sliderGreen.setMinorTickSpacing(1);
+		sliderGreen.setPaintLabels(true);
+		sliderGreen.setSnapToTicks(true);
+		sliderGreen.setValue(green);
+		sliderGreen.setMaximum(255);
+		sliderGreen.setToolTipText("зелёный");
+		coloreMenu.add(sliderGreen);
+		sliderGreen.addChangeListener(new ChangeListener() {//зелёный цвет
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				green = sliderGreen.getValue();
+				panelColor.setBackground(new Color(red, green, blue));
+			}
+		});
+		
+		JSlider sliderBlue = new JSlider();
+		sliderBlue.setPaintLabels(true);
+		sliderBlue.setMinorTickSpacing(1);
+		sliderBlue.setMajorTickSpacing(255);
+		sliderBlue.setSnapToTicks(true);
+		sliderBlue.setValue(blue);
+		sliderBlue.setMaximum(255);
+		sliderBlue.setToolTipText("синий");
+		coloreMenu.add(sliderBlue);
+		sliderBlue.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				blue = sliderBlue.getValue();
+				panelColor.setBackground(new Color(red, green, blue));
+			}
+		});
+		
+		JMenuBar backgroundBar = new JMenuBar();
+		backgroundBar.setBounds(150, 0, 50, 25);
+		add(backgroundBar);
+		
+		JMenu backgroundMenu = new JMenu("Фон");
+		backgroundBar.add(backgroundMenu);
+		
+		JMenuItem menuBackgrBlack = new JMenuItem("Белый");
+		backgroundMenu.add(menuBackgrBlack);
+		menuBackgrBlack.addActionListener(actionListener);
+		
+		JMenuItem menuBackgrWhite = new JMenuItem("Чёрный");
+		backgroundMenu.add(menuBackgrWhite);
+		menuBackgrWhite.addActionListener(actionListener);
+		
+		JToolBar toolBar = new JToolBar();
+		toolBar.setBounds(200, 0, 100, 25);
+		add(toolBar);
+		
+		JButton btnErase = new JButton("Стёрка");
+		toolBar.add(btnErase);
+		btnErase.addActionListener(new ActionListener() {//переключение режима стёрка/кисть
+			public void actionPerformed(ActionEvent e) {
+				switch(btnErase.getText()) {
+				case "Стёрка":
+					btnErase.setText("Кисть");
+					erase = true;
+					break;
+				case "Кисть":
+					btnErase.setText("Стёрка");
+					erase = false;
+					break;
+				}
+			}			
+		});
+		
+		JToolBar toolBar_1 = new JToolBar();
+		toolBar_1.setToolTipText("");
+		toolBar_1.setFloatable(false);
+		toolBar_1.setBounds(300, 0, 500, 25);
+		add(toolBar_1);
+		
+		lblBrushSize = new JLabel("Размер кисти " + size);
+		toolBar_1.add(lblBrushSize);
+		
+		JLabel lblNewLabel = new JLabel("      Прозрачность");
+		toolBar_1.add(lblNewLabel);
+		
+		JSlider sliderAlfa = new JSlider();
+		sliderAlfa.setSnapToTicks(true);
+		sliderAlfa.setValue(alfa);
+		sliderAlfa.setToolTipText("Альфа канал");
+		sliderAlfa.setMinorTickSpacing(1);
+		sliderAlfa.setMaximum(255);
+		sliderAlfa.setMajorTickSpacing(255);
+		toolBar_1.add(sliderAlfa);
+		
+		JRadioButton rdbtnSetka = new JRadioButton("Сетка");
+		toolBar_1.add(rdbtnSetka);
+		rdbtnSetka.addActionListener(new ActionListener() {//включение рисования по сетке
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(rdbtnSetka.getSelectedObjects() != null) {
+					setka = true;
+				}else setka = false;			
+			}
+		});
+		
+		sliderAlfa.addChangeListener(new ChangeListener() {//настройка альфа канала
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int temp = sliderAlfa.getValue();
+				alfa = 255-temp;
+			}
+		});
+		
+		JToolBar toolBarEnd = new JToolBar();//конечный кусок тулбары
+		toolBarEnd.setFloatable(false);
+		toolBarEnd.setBounds(800, 0, horizontalSize, 25);
+		add(toolBarEnd);
+		
+		addMouseListener(new PixelListener());
+		addMouseMotionListener(new PixelListener());
+		addMouseWheelListener(new PixelListener());
+	}
+	
+	public void paintComponent(Graphics canvas) {
+		super.paintComponent(canvas);
+		for(Pixel p : pixelList) {
+			p.draw(canvas);
+		}
+	}
+	
+	
+	public class FileWork{
+				
+		public void fileWrite(String fileName) {//сохранение файла
+	
+			int widthImg = 0;
+			int heightImg = 0;
+			for(Pixel p : pixelList) {//находим самые крайние пиксели по горизонтали и вертикали
+				if(p.x + p.size > widthImg) {
+					widthImg = p.x + p.size;
+				}
+				if(p.y + p.size > heightImg) {
+					heightImg = p.y + p.size;
+				}
+			}
+			try {
+				BufferedImage pict = new BufferedImage(widthImg+10, heightImg+10, BufferedImage.TYPE_INT_ARGB);//создаём буфер изображения
+				pict.createGraphics().drawImage(pict, 0, 0, null, null);
+							
+				Graphics2D graphics = (Graphics2D) pict.getGraphics();
+				for(Pixel p : pixelList) {//считываем из листа и записываем картинку в буффер
+					graphics.setColor(p.color);
+					graphics.fillRect(p.x, p.y, p.size, p.size);
+				}
+
+				File output = new File(fileName + ".png");//создаём файл 
+				ImageIO.write(pict, "png", output);//записываем в файл буффер
+				widthImg = 0;
+				heightImg = 0;
+				
+			} catch (IOException e1) {				
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	private class Pixel{
+		private int x;//положение пикселя
+		private int y;
+		private int size;//размер пикселя
+		private Color color;//цвет пикселя
+		private int red;
+		private int green;
+		private int blue;
+		private int alfa;
+		
+		public Pixel(int newX, int newY, int newSize, int newRed, int newGreen, int newBlue, int newAlfa) {
+			if(setka) {
+				x = (newX / newSize) * newSize + newSize/2;//рисование по сетке
+				y = (newY / newSize) * newSize + newSize/2;
+			}else {
+				x = newX;//рисование без сетке
+				y = newY;
+			}
+			red = newRed;
+			green = newGreen;
+			blue = newBlue;
+			size = newSize;
+			alfa = newAlfa;
+			color = new Color(red, green, blue, alfa);
+		}
+		
+		public void draw(Graphics canvas) {
+			canvas.setColor(color);
+			canvas.fillRect(x - size/2, y - size/2, size, size);			
+		}	
+	}
+	
+	private class PixelListener extends MouseAdapter{//обработка мыши
+		
+		public void mousePressed(MouseEvent e) {//обработка нажатий 
+			brushWork(e);
+		}
+		
+		public void mouseDragged(MouseEvent e) {//обработка движения мышью
+			brushWork(e);			
+		}
+		
+		public void mouseWheelMoved(MouseWheelEvent e) {//обработка колёсика мыши (изменение размера кисти)
+			size += e.getUnitsToScroll();
+			sliderBrush.setValue(size);
+			if(size < 2) {
+				size = 2;//не меньше 2х пикселей
+			}else if(size > 100) {
+				size = 100;//не больше 100
+			}
+		}
+		
+		public void brushWork(MouseEvent e) {//работа кисти
+			if(erase) {//стирание
+				for(Pixel p : pixelList) {
+					if(e.getX() >= p.x - p.size/2 && e.getX() <= p.x + p.size/2 && e.getY() >= p.y - p.size/2 && e.getY() <= p.y + p.size/2) {
+						pixelList.remove(p);
+						break;
+					}
+				}
+			}else {//рисование
+				pixelList.add(new Pixel(e.getX(), e.getY(), size, red, green, blue, alfa));
+			}			
+			repaint();	
+		}
+	}
+}
