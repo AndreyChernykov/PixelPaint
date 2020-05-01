@@ -1,3 +1,4 @@
+package pixelPaint;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -5,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
@@ -32,17 +34,58 @@ public class PixelPanel extends JPanel{
 	static boolean setka = false;//сетка
 	static boolean erase = false;//стёрка
 	Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();//узнаём разрешение экрана
-	int horizontalSize = scrSize.width;//узнаём ширину экрана
+	private int horizontalSize = scrSize.width;//узнаём ширину экрана
 	JSlider sliderBrush;
 	JLabel lblBrushSize;
+	JMenu coloreMenu;
+	JMenuBar brushBar;
+	JToolBar toolBar_1;
 	FileWork fileWork = new FileWork();
 	ActionListener actionListener = new ActLis();
+	
+	static ArrayList<Pixel>pixelList = new ArrayList<Pixel>();//лист хранящий пиксели
 	
 	public PixelPanel() {
 		
 		setBackground(Color.white);
 		setLayout(null);
 			
+		createMenuMenu();
+		
+		createMenuBrush();
+				
+		createMenuColor();
+		
+		createMenuBackground();
+		
+		createBrushErase();
+		
+		toolBar_1 = new JToolBar();
+		toolBar_1.setToolTipText("");
+		toolBar_1.setFloatable(false);
+		toolBar_1.setBounds(300, 0, 500, 25);
+		add(toolBar_1);
+		
+		lblBrushSize = new JLabel("Размер кисти " + size);
+		toolBar_1.add(lblBrushSize);
+		
+		JLabel lblNewLabel = new JLabel("      Прозрачность");
+		toolBar_1.add(lblNewLabel);
+		
+		createSliderAlfa();
+		
+		createSetka();
+		
+		JToolBar toolBarEnd = new JToolBar();//конечный кусок тулбары
+		toolBarEnd.setFloatable(false);
+		toolBarEnd.setBounds(800, 0, horizontalSize, 25);
+		add(toolBarEnd);
+		
+		addMouseListener(new PixelListener());
+		addMouseMotionListener(new PixelListener());
+	}
+	
+	private void createMenuMenu() {//создание меню меню
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.setToolTipText("Menu");
 		menuBar.setBounds(0, 0, 50, 25);
@@ -66,8 +109,10 @@ public class PixelPanel extends JPanel{
 		JMenuItem menuExit = new JMenuItem("Выход");
 		menuMenu.add(menuExit);		
 		menuExit.addActionListener(actionListener);
-		
-		JMenuBar brushBar = new JMenuBar();
+	}
+	
+	private void createMenuBrush() {//меню кисти
+		brushBar = new JMenuBar();
 		brushBar.setToolTipText("Кисть");
 		brushBar.setBounds(50, 0, 50, 25);
 		add(brushBar);
@@ -92,12 +137,14 @@ public class PixelPanel extends JPanel{
 				lblBrushSize.setText("Размер кисти  " + size);
 			}		
 		});
-		
+	}
+	
+	private void createMenuColor() {//создание меню цвета
 		JMenuBar coloreBar = new JMenuBar();
 		coloreBar.setBounds(100, 0, 50, 25);
 		add(coloreBar);
 		
-		JMenu coloreMenu = new JMenu("Цвет");
+		coloreMenu = new JMenu("Цвет");
 		coloreBar.add(coloreMenu);
 		
 		Panel panelColor = new Panel();
@@ -110,14 +157,7 @@ public class PixelPanel extends JPanel{
 		coloreMenu.add(panelColor);
 		
 		JSlider sliderRed = new JSlider();
-		sliderRed.setPaintLabels(true);
-		sliderRed.setMinorTickSpacing(1);
-		sliderRed.setMajorTickSpacing(255);
-		sliderRed.setSnapToTicks(true);
-		sliderRed.setValue(red);
-		sliderRed.setMaximum(255);
-		sliderRed.setToolTipText("красный");
-		coloreMenu.add(sliderRed);
+		sliderColor(sliderRed, red, "красный");
 		sliderRed.addChangeListener(new ChangeListener() {//красный цвет
 			@Override
 			public void stateChanged(ChangeEvent e) {
@@ -127,14 +167,7 @@ public class PixelPanel extends JPanel{
 		});
 		
 		JSlider sliderGreen = new JSlider();
-		sliderGreen.setMajorTickSpacing(255);
-		sliderGreen.setMinorTickSpacing(1);
-		sliderGreen.setPaintLabels(true);
-		sliderGreen.setSnapToTicks(true);
-		sliderGreen.setValue(green);
-		sliderGreen.setMaximum(255);
-		sliderGreen.setToolTipText("зелёный");
-		coloreMenu.add(sliderGreen);
+		sliderColor(sliderGreen, green, "зелёный");
 		sliderGreen.addChangeListener(new ChangeListener() {//зелёный цвет
 			@Override
 			public void stateChanged(ChangeEvent e) {
@@ -144,22 +177,28 @@ public class PixelPanel extends JPanel{
 		});
 		
 		JSlider sliderBlue = new JSlider();
-		sliderBlue.setPaintLabels(true);
-		sliderBlue.setMinorTickSpacing(1);
-		sliderBlue.setMajorTickSpacing(255);
-		sliderBlue.setSnapToTicks(true);
-		sliderBlue.setValue(blue);
-		sliderBlue.setMaximum(255);
-		sliderBlue.setToolTipText("синий");
-		coloreMenu.add(sliderBlue);
-		sliderBlue.addChangeListener(new ChangeListener() {
+		sliderColor(sliderBlue, blue, "синий");
+		sliderBlue.addChangeListener(new ChangeListener() {//синий цвет
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				blue = sliderBlue.getValue();
 				panelColor.setBackground(new Color(red, green, blue));
 			}
 		});
-		
+	}
+	
+	private void sliderColor(JSlider slider, int color, String nameColor){//создание слайдеров настройки цвета
+		slider.setPaintLabels(true);
+		slider.setMinorTickSpacing(1);
+		slider.setMajorTickSpacing(255);
+		slider.setSnapToTicks(true);
+		slider.setValue(color);
+		slider.setMaximum(255);
+		slider.setToolTipText(nameColor);
+		coloreMenu.add(slider);
+	}
+	
+	private void createMenuBackground() {//создание меню фона
 		JMenuBar backgroundBar = new JMenuBar();
 		backgroundBar.setBounds(150, 0, 50, 25);
 		add(backgroundBar);
@@ -169,7 +208,7 @@ public class PixelPanel extends JPanel{
 		
 		JMenuItem menuBackgrWhite = new JMenuItem("Белый");
 		backgroundMenu.add(menuBackgrWhite);
-		menuBackgrWhite.addActionListener(new ActionListener() {//переключение режима стёрка/кисть
+		menuBackgrWhite.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setBackground(Color.WHITE);
 			}			
@@ -177,12 +216,14 @@ public class PixelPanel extends JPanel{
 		
 		JMenuItem menuBackgrBlack = new JMenuItem("Чёрный");
 		backgroundMenu.add(menuBackgrBlack);
-		menuBackgrBlack.addActionListener(new ActionListener() {//переключение режима стёрка/кисть
+		menuBackgrBlack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setBackground(Color.BLACK);
 			}			
 		});
-		
+	}
+	
+	private void createBrushErase() {//кнопка кисть/стёрка 
 		JToolBar toolBar = new JToolBar();
 		toolBar.setBounds(200, 0, 100, 25);
 		add(toolBar);
@@ -203,18 +244,9 @@ public class PixelPanel extends JPanel{
 				}
 			}			
 		});
-		
-		JToolBar toolBar_1 = new JToolBar();
-		toolBar_1.setToolTipText("");
-		toolBar_1.setFloatable(false);
-		toolBar_1.setBounds(300, 0, 500, 25);
-		add(toolBar_1);
-		
-		lblBrushSize = new JLabel("Размер кисти " + size);
-		toolBar_1.add(lblBrushSize);
-		
-		JLabel lblNewLabel = new JLabel("      Прозрачность");
-		toolBar_1.add(lblNewLabel);
+	}
+	
+	private void createSliderAlfa() {//создание слайдера альфа канала
 		
 		JSlider sliderAlfa = new JSlider();
 		sliderAlfa.setSnapToTicks(true);
@@ -225,6 +257,16 @@ public class PixelPanel extends JPanel{
 		sliderAlfa.setMajorTickSpacing(255);
 		toolBar_1.add(sliderAlfa);
 		
+		sliderAlfa.addChangeListener(new ChangeListener() {//настройка альфа канала
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int temp = sliderAlfa.getValue();
+				alfa = 255-temp;
+			}
+		});
+	}
+	
+	private void createSetka() {//создание радиокнопки сетки
 		JRadioButton rdbtnSetka = new JRadioButton("Сетка");
 		toolBar_1.add(rdbtnSetka);
 		rdbtnSetka.addActionListener(new ActionListener() {//включение рисования по сетке
@@ -235,27 +277,11 @@ public class PixelPanel extends JPanel{
 				}else setka = false;			
 			}
 		});
-		
-		sliderAlfa.addChangeListener(new ChangeListener() {//настройка альфа канала
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int temp = sliderAlfa.getValue();
-				alfa = 255-temp;
-			}
-		});
-		
-		JToolBar toolBarEnd = new JToolBar();//конечный кусок тулбары
-		toolBarEnd.setFloatable(false);
-		toolBarEnd.setBounds(800, 0, horizontalSize, 25);
-		add(toolBarEnd);
-		
-		addMouseListener(new PixelListener());
-		addMouseMotionListener(new PixelListener());
 	}
-	
+
 	public void paintComponent(Graphics canvas) {
 		super.paintComponent(canvas);
-		for(Pixel p : FileWork.pixelList) {
+		for(Pixel p : pixelList) {
 			p.draw(canvas);
 		}
 	}
