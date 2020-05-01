@@ -1,3 +1,5 @@
+package pixelPaint;
+
 import javax.swing.JFrame;
 
 public class PixelPaint extends JFrame{
@@ -12,6 +14,6 @@ public class PixelPaint extends JFrame{
 		frame.setSize(new java.awt.Dimension(850, 600));
 		frame.setVisible(true);
 		
-	}
+	}	
 	
 }
