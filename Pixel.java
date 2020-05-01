@@ -1,16 +1,13 @@
+package pixelPaint;
+
 import java.awt.Color;
 import java.awt.Graphics;
-
 
 public class Pixel{
 	private int x;//положение пикселя
 	private int y;
 	private int size;//размер пикселя
 	private Color color;//цвет пикселя
-	private int red;
-	private int green;
-	private int blue;
-	private int alfa;
 	
 	public int getX() {
 		return x;
@@ -52,12 +49,8 @@ public class Pixel{
 			x = newX;//рисование без сетке
 			y = newY;
 		}
-		red = newRed;
-		green = newGreen;
-		blue = newBlue;
 		size = newSize;
-		alfa = newAlfa;
-		color = new Color(red, green, blue, alfa);
+		color = new Color(newRed, newGreen, newBlue, newAlfa);
 	}
 	
 	public void draw(Graphics canvas) {
