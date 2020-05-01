@@ -1,3 +1,5 @@
+package pixelPaint;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -24,10 +26,10 @@ class ActLis implements ActionListener{//обработка Меню меню
 			}
 			break;
 		case "Выход":
-			System.exit(0);
+			PixelPaint.frame.dispose();
 			break;
 		case "Очистить":
-			FileWork.pixelList.clear();
+			PixelPanel.pixelList.clear();
 			PixelPaint.frame.repaint();
 			break;
 		case "О программе":
