@@ -40,10 +40,11 @@ public class PixelPanel extends JPanel{
 	JMenu coloreMenu;
 	JMenuBar brushBar;
 	JToolBar toolBar_1;
+	
 	FileWork fileWork = new FileWork();
 	ActionListener actionListener = new ActLis();
 	
-	static ArrayList<Pixel>pixelList = new ArrayList<Pixel>();//лист хранящий пиксели
+	ArrayList<Pixel>pixelList = new ArrayList<Pixel>();//лист хранящий пиксели
 	
 	public PixelPanel() {
 		
