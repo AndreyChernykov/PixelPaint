@@ -5,12 +5,6 @@ import java.awt.event.MouseEvent;
 
 public class PixelListener extends MouseAdapter{//обработка мыши
 	
-	PixelPanel pixelPanel;
-	
-	PixelListener(){
-		pixelPanel = new PixelPanel();
-	}
-	
 	public void mousePressed(MouseEvent e) {//обработка нажатий 
 		brushWork(e);
 	}
@@ -22,15 +16,16 @@ public class PixelListener extends MouseAdapter{//обработка мыши
 	public void brushWork(MouseEvent e) {//работа кисти
 		
 		if(PixelPanel.erase) {//стирание
-			for(Pixel p : pixelPanel.pixelList) {
+			for(Pixel p : PixelPanel.pixelList) {
 				if(e.getX() >= p.getX() - p.getSize()/2 && e.getX() <= p.getX() + p.getSize()/2 && e.getY() >= p.getY() - p.getSize()/2 && e.getY() <= p.getY() + p.getSize()/2) {
-					pixelPanel.pixelList.remove(p);
+					PixelPanel.pixelList.remove(p);
 					break;
 				}
 			}
 		}else {//рисование
-			pixelPanel.pixelList.add(new Pixel(e.getX(), e.getY(), PixelPanel.size, PixelPanel.red, PixelPanel.green, PixelPanel.blue, PixelPanel.alfa));
+			PixelPanel.pixelList.add(new Pixel(e.getX(), e.getY(), PixelPanel.size, PixelPanel.red, PixelPanel.green, PixelPanel.blue, PixelPanel.alfa));
 		}			
 		PixelPaint.frame.repaint();	
 	}
 }
+
