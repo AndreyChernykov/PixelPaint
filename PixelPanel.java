@@ -41,10 +41,9 @@ public class PixelPanel extends JPanel{
 	JMenuBar brushBar;
 	JToolBar toolBar_1;
 	
-	FileWork fileWork = new FileWork();
 	ActionListener actionListener = new ActLis();
 	
-	ArrayList<Pixel>pixelList = new ArrayList<Pixel>();//лист хранящий пиксели
+	static ArrayList<Pixel>pixelList = new ArrayList<Pixel>();//лист хранящий пиксели
 	
 	public PixelPanel() {
 		
@@ -98,6 +97,14 @@ public class PixelPanel extends JPanel{
 		JMenuItem menuSave = new JMenuItem("Сохранить");
 		menuMenu.add(menuSave);
 		menuSave.addActionListener(actionListener);
+		
+		JMenuItem menuProjectSave = new JMenuItem("Сохранить проект");
+		menuMenu.add(menuProjectSave);
+		menuProjectSave.addActionListener(actionListener);
+		
+		JMenuItem menuProjectLoad = new JMenuItem("Загрузить проект");
+		menuMenu.add(menuProjectLoad);
+		menuProjectLoad.addActionListener(actionListener);
 
 		JMenuItem menuClear = new JMenuItem("Очистить");
 		menuMenu.add(menuClear);
@@ -288,3 +295,4 @@ public class PixelPanel extends JPanel{
 	}
 	
 }
+
