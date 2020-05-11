@@ -58,3 +58,4 @@ public class Pixel{
 		canvas.fillRect(x - size/2, y - size/2, size, size);			
 	}	
 }
+
